@@ -16,19 +16,26 @@ public class BoardTile extends JPanel implements MouseListener {
 	public static final Color WHITE_SELECTED = new Color(251, 255, 220);
 	public static final Color CHECK = Color.red;
 	private static final long serialVersionUID = 1L;
-	
+	private final Color defaultColor;
 	private int index;
-	private Color uncheckedColor;
+	
 	private final Display display;
 	private Color color = Color.red;
 	private boolean isChecked = false;
+	private boolean isActive = false;
 	
 	
-	BoardTile(Display disp, int index){
+	public void setActive(boolean isActive) {
+		this.isActive = isActive;
+	}
+	BoardTile(Display disp, int index, Color defaultColor){
 		
 		this.addMouseListener(this);
 		this.display = disp;
 		this.index = index;
+		this.defaultColor = defaultColor;
+		this.color = defaultColor;
+		this.setBackground(this.color);
 	}
 	@Override
 	public void mouseClicked(MouseEvent e) {
@@ -67,15 +74,22 @@ public class BoardTile extends JPanel implements MouseListener {
 		this.setBackground(this.color);
 	}
 	public void toggleColor() {
-		if(this.color == BoardTile.BLACK) {
-			this.color = BoardTile.BLACK_SELECTED;
-		} else if(this.color == BoardTile.BLACK_SELECTED) {
-			this.color = BoardTile.BLACK;
-		} else if(this.color == BoardTile.WHITE) {
-			this.color = BoardTile.WHITE_SELECTED;
-		} else if(this.color == BoardTile.WHITE_SELECTED) {
-			this.color = BoardTile.WHITE;
-		} else if(this.color == BoardTile.CHECK) {
+		/*
+		 * toggles the tile's color between the selected and deselected colors, unless the piece is
+		 * in check.
+		 */
+		if(this.isActive) {
+			if(this.color == BoardTile.BLACK) {
+				this.color = BoardTile.BLACK_SELECTED;
+			} else if(this.color == BoardTile.WHITE) {
+				this.color = BoardTile.WHITE_SELECTED;
+			}
+		} else {
+			if(this.isChecked) {
+				this.color = BoardTile.CHECK;
+			}else {
+				this.color = this.defaultColor;
+			}
 			
 		}
 		
@@ -91,13 +105,25 @@ public class BoardTile extends JPanel implements MouseListener {
 		return isChecked;
 	}
 	public void setChecked(boolean isChecked) {
+		/*
+		 * is called for each piece after each completed move. If the piece is a king,
+		 * markes it as checked. Otherwise, changes the square to be the correct color.
+		 */
 		this.isChecked = isChecked;
 		if(this.isChecked) {
-			this.uncheckedColor = this.color;
+			//we need to color red
 			this.color = BoardTile.CHECK;
 		} else {
-			this.color = this.uncheckedColor;
+			//we need to color to active or innactive
+			if(this.isActive) {
+				this.color = this.defaultColor;
+				this.toggleColor();
+			} else {
+				this.color = this.defaultColor;
+			}
 		}
+		this.setBackground(this.color);
+		
 		
 	}
 

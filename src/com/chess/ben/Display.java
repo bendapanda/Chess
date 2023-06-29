@@ -58,13 +58,13 @@ Display(Board gameLayout){
 	int index = 0;
 	for(int i=0; i<this.NUM_SQUARES;i++) {
 		for(int j=0; j<this.NUM_SQUARES;j++) {
-			this.squares[index] = new BoardTile(this, index);
+			Color tileColor = Color.blue;
 			if((i+j)%2 == 0) {
-				this.squares[index].setColor(BoardTile.WHITE);
+				tileColor = BoardTile.WHITE;
+			} else {
+				tileColor = BoardTile.BLACK;
 			}
-			else {
-				this.squares[index].setColor(BoardTile.BLACK);
-			}
+			this.squares[index] = new BoardTile(this, index, tileColor);
 			
 			this.boardPanel.add(this.squares[index]);
 			index++;
@@ -217,8 +217,9 @@ public void justClicked(BoardTile tile) {
 	// Once piece has moved, refresh board
 	if(turnMade) {
 		this.nextPlayerTurn();
+		this.colorCheckedSquares();
 	}
-	this.findChecks();
+	
 	this.refresh();
 }
 private boolean pieceIsCurrentColor(int tileIndex) {
@@ -278,6 +279,9 @@ private void deselectPiece() {
 	/*
 	 * toggles the color of all selected squares, and resets the selected and active squares
 	 */
+	for(int pos: this.activeSquareLocations) {
+		this.squares[pos].setActive(false);
+	}
 	this.toggleSquares(this.activeSquareLocations);
 	this.selectedPiece = -1;
 	this.activeSquareLocations.removeAll(this.activeSquareLocations);
@@ -289,10 +293,14 @@ private void selectPiece(int pieceLocation) {
 	 * as well as set them as active
 	 */
 	this.selectedPiece = pieceLocation;
+	this.squares[this.selectedPiece].setActive(true);
 	this.activeSquareLocations.add(this.selectedPiece);
 	
 	ArrayList<Integer> moveOptions = Piece.getMoveOptions(this.game.getPosition()[this.selectedPiece],
 			pieceLocation, game);
+	for(int pos: moveOptions) {
+		this.squares[pos].setActive(true);
+	}
 	this.activeSquareLocations.addAll(moveOptions);
 	this.toggleSquares(this.activeSquareLocations);
 }
@@ -328,12 +336,16 @@ private void rotateBoard() {
 	
 	this.boardPanel.validate();
 }
-private void findChecks() {
-	if(this.game.isWhiteCheck()) {
-		for(int i=0;i<this.squares.length; i++) {
-			if(this.game.getPosition()[i] == Piece.white + Piece.king) {
-				// color tile in red
-			}
+private void colorCheckedSquares() {
+	for(int i=0; i< this.squares.length; i++) {
+		if(this.game.getPosition()[i] == Piece.white + Piece.king
+				&& this.game.isWhiteCheck()) {
+			this.squares[i].setChecked(true);
+		} else if(this.game.getPosition()[i] == Piece.black + Piece.king
+				&& this.game.isBlackCheck()) {
+			this.squares[i].setChecked(true);
+		} else {
+			this.squares[i].setChecked(false);
 		}
 	}
 	
